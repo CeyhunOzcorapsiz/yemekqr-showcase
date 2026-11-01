@@ -1,0 +1,30 @@
+BEGIN TRANSACTION;
+ALTER TABLE "Restaurant" ADD COLUMN "timezone" TEXT NOT NULL DEFAULT 'Europe/Istanbul';
+ALTER TABLE "User" ADD COLUMN "active" BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE "OrderItem" ADD COLUMN "productName" TEXT NOT NULL DEFAULT '';
+UPDATE "OrderItem" SET "productName" = COALESCE((SELECT "name" FROM "Product" WHERE "Product"."id" = "OrderItem"."productId"), 'Eski ürün');
+ALTER TABLE "Order" ADD COLUMN "refundedAmount" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "Order" ADD COLUMN "paymentStatus" TEXT NOT NULL DEFAULT 'unpaid';
+ALTER TABLE "Order" ADD COLUMN "idempotencyKey" TEXT;
+ALTER TABLE "Order" ADD COLUMN "requestHash" TEXT;
+ALTER TABLE "Order" ADD COLUMN "detectionSessionId" TEXT REFERENCES "DetectionSession"("id");
+CREATE TABLE "Session" ("id" TEXT NOT NULL PRIMARY KEY, "userId" TEXT NOT NULL REFERENCES "User"("id"), "expiresAt" DATETIME NOT NULL, "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE "Payment" ("id" TEXT NOT NULL PRIMARY KEY, "orderId" TEXT NOT NULL REFERENCES "Order"("id"), "kind" TEXT NOT NULL, "method" TEXT NOT NULL, "amount" INTEGER NOT NULL, "reason" TEXT, "idempotencyKey" TEXT, "userId" TEXT NOT NULL, "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE "AuditLog" ("id" TEXT NOT NULL PRIMARY KEY, "restaurantId" TEXT NOT NULL, "userId" TEXT NOT NULL, "action" TEXT NOT NULL, "entityId" TEXT NOT NULL, "detail" TEXT NOT NULL, "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE "DetectionSession" ("id" TEXT NOT NULL PRIMARY KEY, "restaurantId" TEXT NOT NULL, "userId" TEXT NOT NULL, "mode" TEXT NOT NULL, "model" TEXT NOT NULL, "durationMs" INTEGER NOT NULL, "predictions" TEXT NOT NULL, "finalItems" TEXT, "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE UNIQUE INDEX "Order_restaurantId_idempotencyKey_key" ON "Order"("restaurantId", "idempotencyKey");
+CREATE UNIQUE INDEX "Order_detectionSessionId_key" ON "Order"("detectionSessionId");
+CREATE UNIQUE INDEX "Payment_orderId_idempotencyKey_key" ON "Payment"("orderId", "idempotencyKey");
+CREATE INDEX "User_restaurantId_active_idx" ON "User"("restaurantId", "active");
+CREATE INDEX "Product_restaurantId_active_idx" ON "Product"("restaurantId", "active");
+CREATE INDEX "Order_restaurantId_createdAt_idx" ON "Order"("restaurantId", "createdAt");
+CREATE INDEX "OrderItem_orderId_idx" ON "OrderItem"("orderId");
+CREATE INDEX "OrderItem_productId_idx" ON "OrderItem"("productId");
+CREATE INDEX "Session_userId_idx" ON "Session"("userId");
+CREATE INDEX "Payment_orderId_idx" ON "Payment"("orderId");
+CREATE INDEX "AuditLog_restaurantId_createdAt_idx" ON "AuditLog"("restaurantId", "createdAt");
+CREATE INDEX "DetectionSession_restaurantId_createdAt_idx" ON "DetectionSession"("restaurantId", "createdAt");
+-- Historical payments are unknown; never fabricate them during migration.
+
+UPDATE "User" SET "email" = lower(trim("email"));
+COMMIT;

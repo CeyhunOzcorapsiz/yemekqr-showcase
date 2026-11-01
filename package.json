@@ -1,0 +1,25 @@
+{
+  "name": "yemekqr",
+  "private": true,
+  "engines": {
+    "node": ">=24.11 <25"
+  },
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "dev": "node scripts/run.mjs dev",
+    "dev:ml": "python -m uvicorn main:app --port 8000 --reload --app-dir ml-service",
+    "build": "npm run build --prefix backend && npm run build --prefix frontend",
+    "start": "node scripts/run.mjs start",
+    "test": "npm test --prefix backend && npm run test:money && python -m unittest discover -s ml-service/tests -v && python -m unittest discover -s scripts/tests -v",
+    "lint": "npm run lint --prefix frontend",
+    "backup": "python scripts/database.py backup",
+    "test:browser": "playwright test",
+    "test:money": "node --test frontend/test/money.test.mjs frontend/test/i18n.test.mjs",
+    "format": "prettier --write \"backend/src/**/*.ts\" \"backend/test/**/*.ts\" \"frontend/src/**/*.{ts,tsx,css}\" \"scripts/*.mjs\" \"e2e/*.mjs\" playwright.config.mjs",
+    "check:format": "prettier --check \"backend/src/**/*.ts\" \"backend/test/**/*.ts\" \"frontend/src/**/*.{ts,tsx,css}\""
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "prettier": "3.9.10"
+  }
+}

@@ -1,0 +1,10 @@
+node_modules
+**/node_modules
+**/dist
+.cache
+.revisions
+.backups
+docs
+**/package-lock.json
+**/*.svg
+**/.env*

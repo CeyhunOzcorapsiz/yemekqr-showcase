@@ -1,0 +1,47 @@
+export const errorMessages: Record<string, string> = {
+  INCORRECT_PASSWORD: "Mevcut şifre yanlış.",
+  PASSWORD_UNCHANGED: "Yeni şifre mevcut şifreden farklı olmalı.",
+  SHIFT_OPEN: "Açık vardiya zaten var.",
+  SHIFT_CLOSED: "Vardiya kapalı.",
+  UNAUTHORIZED: "Oturumunuz sona erdi. Lütfen tekrar giriş yapın.",
+  FORBIDDEN: "Bu işlem için yetkiniz yok.",
+  INVALID_CREDENTIALS: "E-posta veya şifre hatalı.",
+  EMAIL_EXISTS: "Bu e-posta ile zaten bir hesap var.",
+  RATE_LIMITED: "Çok fazla deneme. Lütfen sonra tekrar deneyin.",
+  PRODUCT_UNAVAILABLE:
+    "Sepetteki bir ürün artık satışta değil. Menüyü yenileyin.",
+  PRICE_CHANGED: "Fiyatlar değişti. Menüyü yenileyerek yeni tutarı onaylayın.",
+  TOTAL_TOO_LARGE: "Sipariş toplamı izin verilen sınırı aşıyor.",
+  IDEMPOTENCY_CONFLICT:
+    "Bu işlem zaten kaydedildi veya farklı içerikle kullanıldı.",
+  IDEMPOTENCY_REQUIRED: "İstek tamamlanamadı.",
+  INVALID_STATUS: "İşlem mevcut sipariş durumunda yapılamaz.",
+  INVALID_REFUND: "İade tutarı kalan tahsilatı aşamaz.",
+  NOT_FOUND: "Kayıt bulunamadı.",
+  ML_TIMEOUT:
+    "Analiz zaman aşımına uğradı. Manuel siparişle devam edebilirsiniz.",
+  ML_UNAVAILABLE:
+    "Kamera servisine ulaşılamadı. Manuel sipariş kullanabilirsiniz.",
+  ML_INVALID_RESPONSE: "Analiz servisi geçersiz yanıt verdi.",
+  ML_ERROR:
+    "Fotoğraf analiz edilemedi. Başka bir fotoğraf veya manuel sipariş deneyin.",
+  INVALID_IMAGE: "JPEG, PNG veya WebP görüntüsü yükleyin.",
+  EMPTY_MENU: "Önce menüye ürün ekleyin.",
+  LAST_ADMIN: "Son aktif yönetici kapatılamaz veya kasiyere dönüştürülemez.",
+  MENU_LIMIT: "Bir restoranda en fazla 2000 ürün tanımlanabilir.",
+  INVALID_DATE: "Tarih ve filtreleri kontrol edin.",
+  INVALID_RANGE: "Tarih ve filtreleri kontrol edin.",
+  INVALID_QUERY: "Tarih ve filtreleri kontrol edin.",
+  MOCK_DISABLED: "Gerçek ortamda test analizi kapalı.",
+  CONFLICT: "İşlem kaydı çakıştı. Sayfayı yenileyip tekrar deneyin.",
+  DETECTION_UNAVAILABLE: "Analiz kaydı bulunamadı veya zaten kullanılmış.",
+  ORIGIN_REJECTED: "İstek kaynağına izin verilmiyor.",
+  LIMIT_FILE_SIZE: "Fotoğraf en fazla 8 MB olabilir.",
+  INVALID_BODY: "Girilen bilgileri kontrol edin.",
+  VALIDATION_ERROR: "Girilen bilgileri kontrol edin.",
+  NETWORK_ERROR:
+    "Sunucuya ulaşılamadı veya işlem zaman aşımına uğradı. Siparişi tekrar denerken aynı işlem korunur.",
+  INVALID_RESPONSE: "Sunucudan geçerli veri alınamadı.",
+  INTERNAL_ERROR: "Beklenmeyen bir hata oluştu.",
+  REQUEST_FAILED: "İstek tamamlanamadı.",
+};

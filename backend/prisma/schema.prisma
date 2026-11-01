@@ -1,0 +1,177 @@
+// YemekQR - Veri modeli (Faz 4: çoklu restoran / multi-tenant mimari)
+// Faz 2'deki tek-restoranlı MVP'den, her restoranın kendi menüsü, kullanıcıları
+// ve siparişleriyle izole çalıştığı bir yapıya geçildi.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Restaurant {
+  id        String    @id @default(uuid())
+  name      String
+  timezone  String    @default("Europe/Istanbul")
+  createdAt DateTime  @default(now())
+  users     User[]
+  products  Product[]
+  orders    Order[]
+  shifts    CashShift[]
+}
+
+model User {
+  id           String     @id @default(uuid())
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurantId String
+  name         String
+  email        String     @unique
+  passwordHash String
+  // "admin" = menü yönetimi + rapor erişimi, "kasiyer" = sadece sipariş oluşturma
+  role         String     @default("kasiyer")
+  active       Boolean    @default(true)
+  sessions     Session[]
+  openedShifts CashShift[] @relation("openedBy")
+  closedShifts CashShift[] @relation("closedBy")
+  createdAt    DateTime   @default(now())
+  orders       Order[]
+  @@index([restaurantId, active])
+}
+
+model Product {
+  id           String      @id @default(uuid())
+  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id])
+  restaurantId String
+  name         String
+  nameEn String?
+  category     String
+  categoryEn String?
+  // Kuruş cinsinden tutulur (ör. 60 TL = 6000). Float kullanmıyoruz çünkü
+  // kayan nokta toplamaları fiş/e-fatura tutarlarında kuruş hatası biriktirir.
+  price        Int
+  active       Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  orderItems   OrderItem[]
+  @@index([restaurantId, active])
+}
+
+model Order {
+  id           String      @id @default(uuid())
+  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id])
+  restaurantId String
+  user         User?       @relation(fields: [userId], references: [id])
+  userId       String?
+  status       String      @default("completed")
+  totalAmount  Int // kuruş cinsinden
+  refundedAmount Int       @default(0)
+  paymentStatus String     @default("unpaid")
+  idempotencyKey String?
+  requestHash   String?
+  detectionSessionId String? @unique
+  detectionSession DetectionSession? @relation(fields: [detectionSessionId], references: [id])
+  qrCodeValue  String
+  createdAt    DateTime    @default(now())
+  items        OrderItem[]
+  payments     Payment[]
+  @@unique([restaurantId, idempotencyKey])
+  @@index([restaurantId, createdAt])
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  order     Order   @relation(fields: [orderId], references: [id])
+  orderId   String
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+  quantity  Int
+  unitPrice Int // kuruş cinsinden, sipariş anındaki birim fiyat
+  productName String @default("")
+  productNameEn String?
+  // "manual" = kasiyer elle ekledi, "ai_detected" = AI tespiti (bkz. ml-service)
+  source    String  @default("manual")
+  @@index([orderId])
+  @@index([productId])
+}
+
+model Session {
+  id String @id @default(uuid())
+  userId String
+  user User @relation(fields: [userId], references: [id])
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  @@index([userId])
+}
+model Payment {
+  id String @id @default(uuid())
+  orderId String
+  order Order @relation(fields: [orderId], references: [id])
+  shiftId String?
+  shift CashShift? @relation(fields: [shiftId], references: [id])
+  kind String
+  method String
+  amount Int
+  reason String?
+  idempotencyKey String?
+  userId String
+  createdAt DateTime @default(now())
+  @@unique([orderId, idempotencyKey])
+  @@index([orderId])
+}
+model AuditLog {
+  id String @id @default(uuid())
+  restaurantId String
+  userId String
+  action String
+  entityId String
+  detail String
+  createdAt DateTime @default(now())
+  @@index([restaurantId, createdAt])
+}
+model DetectionSession {
+  id String @id @default(uuid())
+  restaurantId String
+  userId String
+  mode String
+  model String
+  durationMs Int
+  predictions String
+  finalItems String?
+  createdAt DateTime @default(now())
+  order Order?
+  @@index([restaurantId, createdAt])
+}
+
+model CashShift {
+  id String @id @default(uuid())
+  restaurantId String
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+  openedById String
+  openedBy User @relation("openedBy", fields: [openedById], references: [id])
+  closedById String?
+  closedBy User? @relation("closedBy", fields: [closedById], references: [id])
+  openingCash Int
+  countedCash Int?
+  expectedCash Int?
+  difference Int?
+  note String?
+  openedAt DateTime @default(now())
+  closedAt DateTime?
+  payments Payment[]
+  movements CashMovement[]
+  @@index([restaurantId, openedAt])
+}
+model CashMovement {
+  id String @id @default(uuid())
+  shiftId String
+  shift CashShift @relation(fields: [shiftId], references: [id])
+  userId String
+  kind String
+  amount Int
+  reason String
+  idempotencyKey String
+  createdAt DateTime @default(now())
+  @@unique([shiftId, idempotencyKey])
+  @@index([shiftId])
+}

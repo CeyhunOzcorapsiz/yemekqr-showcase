@@ -1,68 +1,49 @@
-# YemekQR — Product & Architecture Showcase 🍽️📱
+# YemekQR
 
-**English** | [Türkçe](README.tr.md)
+[Detailed Turkish setup and operations guide](README.tr.md)
 
-**An AI-assisted point of sale (POS) and QR receipt platform for restaurants and cafeteria operations.**
+A cashier-assisted restaurant ordering system with manual and camera ordering, public QR order summaries, cash/card payment records, order history, cancellations/refunds, menu/staff management and date-range reporting, cash-shift reconciliation, account password changes and an administrator audit history.
 
-Cashiers select dishes from categories or capture tray images via camera; the system generates an instant QR-coded digital receipt that customers can view on their phones without downloading an app or signing in.
+Stack: React/TypeScript/Vite, Express/Prisma/SQLite, Python/FastAPI/Gemini. Monetary values use integer kuruş. Orders preserve product names and prices. Idempotency keys prevent duplicate orders on retries. Sessions use revocable HttpOnly cookies.
 
-> ℹ️ **About This Showcase:**  
-> This repository is a **public product showcase and technical portfolio**. The full application source code (React frontend, Node.js/Express/Prisma backend, and Python/Gemini ML service) is kept in a private repository. This repository contains the system architecture, product roadmap, MVP design documents, and UI screenshots.
+The interface supports Turkish and English with a persistent language switcher on every screen. System messages, statuses, accessible labels, dates, currency formatting and CSV headings follow the selection. Custom menu items have editable English name/category fields; both receipt names are snapshotted. Currency remains TRY and business time remains Europe/Istanbul.
 
----
+## Development
 
-## 📸 Screenshots & UI Walkthrough
+Requires Node 24.11+ within the 24.x line, and Python 3.14 for camera/testing.
 
-| New Order Screen (Dish & Category Selection) | QR Digital Receipt View |
-|---|---|
-| ![New order selection](docs/img/new-order.png) | ![QR receipt](docs/img/receipt.png) |
-
-| Menu Management Dashboard | Daily Summary & Sales Report |
-|---|---|
-| ![Menu management](docs/img/menu.png) | ![Daily report](docs/img/report.png) |
-
-| Cashier Login Screen | Home Dashboard | Mobile Responsive View |
-|---|---|---|
-| ![Login](docs/img/login.png) | ![Home dashboard](docs/img/home.png) | ![Mobile](docs/img/mobile.png) |
-
----
-
-## 🎯 Key Capabilities
-
-- **Rapid Ordering & Till Management:** Category-based menu selection, instant quantity adjustments, and integer-based currency storage preventing floating-point rounding errors.
-- **Zero-Friction QR Receipts:** Customers scan the QR code to access their itemized receipt and order status; no registration or login required.
-- **Multi-Tenant Architecture:** Single centralized platform supporting multiple independent restaurants with scoped data isolation and JWT-based role separation (Admin vs. Cashier).
-- **Vision-Assisted Ordering (ML Pipeline):** A dedicated Python microservice processes tray photos with Google Gemini Vision to propose order items for one-click cashier confirmation.
-- **Auditable Daily Reporting:** Real-time revenue tracking, order volume metrics, and per-item sales distribution.
-
----
-
-## 🏗️ System Architecture
-
-```
- [Cashier Tablet / Web]     ────────► React 19 + TypeScript (Vite SPA)
-                                              │ (REST API / JWT Auth)
-                                              ▼
- [Backend Service]          ────────► Node.js + Express + Prisma ORM (SQLite / PostgreSQL)
-                                              │ (Internal HTTP Requests)
-                                              ▼
- [Computer Vision Service]  ────────► FastAPI Python Service ──► Google Gemini Vision API
+```sh
+npm ci
+npm run setup
+npm run dev
 ```
 
----
+Open http://localhost:5173. Setup installs locked dependencies, generates a random local secret if no backend environment file exists, and deploys migrations. It preserves existing environment settings.
 
-## 💻 Tech Stack
+Optional demo data: `npm run seed --prefix backend`. Accounts: `admin@demo.com`, `kasiyer@demo.com`; password `demo1234`. Demo seed is disabled in production and preserves existing edits.
 
-| Layer | Technology |
-|---|---|
-| **Frontend** | React, TypeScript, Vite, Tailwind CSS, Modern Responsive Layout |
-| **Backend & Persistence** | Node.js, Express, Prisma ORM, SQLite / PostgreSQL, JWT Authentication |
-| **Machine Learning & AI** | Python, FastAPI, Google Gemini Vision API, Transfer Learning Pipeline |
-| **Testing** | Vitest, API integration tests |
-| **Planning & Specs** | [docs/ROADMAP.md](docs/ROADMAP.md) · [docs/FAZ1_MVP_TASARIM.md](docs/FAZ1_MVP_TASARIM.md) |
+For image analysis, install `ml-service/requirements.lock.txt`, configure `ml-service/.env` from its example, and run `npm run dev:ml`. Gemini mode requires credentials; there is no silent mock fallback. Explicit development-only mock mode is available. Manual sales work without the image service.
 
----
+## Verification
 
-## 🔒 Source Code Notice
+```sh
+npm run build
+npm run lint
+npm run check:format
+npm test
+npm run test:browser
+```
 
-This repository does not contain application source code, database credentials, or secret keys. It is published purely as an architectural case study and product showcase.
+Browser tests use Edge on Windows; otherwise install Chromium with `npx playwright install chromium`. Tests use isolated databases and explicit mock inference. They do not call a paid model.
+
+## Production and limits
+
+Run `npm run build`, then `npm start`. Production requires a database URL, a random secret of at least 32 characters and an HTTPS frontend URL. The backend serves the built frontend on the same origin. Keep inference private and configure the shared service token. This release targets a single backend process.
+
+Cash/card actions record payments completed outside this application. It does not charge cards or issue fiscal documents. Physical printer tests, live model accuracy and restaurant load require separate field validation.
+
+Migration snapshots existing product names and leaves historical payments unknown. Email normalization collisions stop migration without deleting accounts. Back up before migrating.
+
+Use `npm run backup` for consistent SQLite backups. Restore to a new file with `python scripts/database.py restore --source BACKUP.db --target NEW.db`; existing targets are never overwritten.
+
+See [the roadmap](ROADMAP.md).

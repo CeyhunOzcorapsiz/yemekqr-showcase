@@ -1,0 +1,38 @@
+name: Checks
+on:
+  push:
+  pull_request:
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+            frontend/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          cache: pip
+          cache-dependency-path: ml-service/requirements.lock.txt
+      - run: npm ci
+      - run: npm run setup
+      - run: python -m pip install -r ml-service/requirements.lock.txt
+      - run: npm run build
+      - run: npm run lint
+      - run: npm run check:format
+      - run: npm test
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
+      - run: npm audit --omit=dev --prefix backend
+      - run: npm audit --omit=dev --prefix frontend
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-failures
+          path: .cache/playwright-results

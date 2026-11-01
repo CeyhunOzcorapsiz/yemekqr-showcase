@@ -1,0 +1,28 @@
+BEGIN TRANSACTION;
+ALTER TABLE "Product" ADD COLUMN "nameEn" TEXT;
+ALTER TABLE "Product" ADD COLUMN "categoryEn" TEXT;
+ALTER TABLE "OrderItem" ADD COLUMN "productNameEn" TEXT;
+UPDATE "Product" SET "nameEn" = 'Lentil soup' WHERE "restaurantId"='00000000-0000-4000-8000-000000000001' AND "name"='Mercimek Çorbası';
+UPDATE "Product" SET "nameEn" = 'Ezogelin soup' WHERE "restaurantId"='00000000-0000-4000-8000-000000000001' AND "name"='Ezogelin Çorbası';
+UPDATE "Product" SET "nameEn" = 'Sautéed chicken' WHERE "restaurantId"='00000000-0000-4000-8000-000000000001' AND "name"='Tavuk Sote';
+UPDATE "Product" SET "nameEn" = 'White bean stew' WHERE "restaurantId"='00000000-0000-4000-8000-000000000001' AND "name"='Kuru Fasulye';
+UPDATE "Product" SET "nameEn" = 'Stuffed aubergine' WHERE "restaurantId"='00000000-0000-4000-8000-000000000001' AND "name"='Karnıyarık';
+UPDATE "Product" SET "nameEn" = 'Grilled meatballs' WHERE "restaurantId"='00000000-0000-4000-8000-000000000001' AND "name"='Izgara Köfte';
+UPDATE "Product" SET "nameEn" = 'Rice pilaf' WHERE "restaurantId"='00000000-0000-4000-8000-000000000001' AND "name"='Pilav';
+UPDATE "Product" SET "nameEn" = 'Bulgur pilaf' WHERE "restaurantId"='00000000-0000-4000-8000-000000000001' AND "name"='Bulgur Pilavı';
+UPDATE "Product" SET "nameEn" = 'Shepherd''s salad' WHERE "restaurantId"='00000000-0000-4000-8000-000000000001' AND "name"='Çoban Salata';
+UPDATE "Product" SET "nameEn" = 'Seasonal salad' WHERE "restaurantId"='00000000-0000-4000-8000-000000000001' AND "name"='Mevsim Salata';
+UPDATE "Product" SET "nameEn" = 'Ayran (yogurt drink)' WHERE "restaurantId"='00000000-0000-4000-8000-000000000001' AND "name"='Ayran';
+UPDATE "Product" SET "nameEn" = 'Cola' WHERE "restaurantId"='00000000-0000-4000-8000-000000000001' AND "name"='Kola';
+UPDATE "Product" SET "nameEn" = 'Water' WHERE "restaurantId"='00000000-0000-4000-8000-000000000001' AND "name"='Su';
+UPDATE "Product" SET "nameEn" = 'Rice pudding' WHERE "restaurantId"='00000000-0000-4000-8000-000000000001' AND "name"='Sütlaç';
+UPDATE "Product" SET "nameEn" = 'Caramelized milk pudding' WHERE "restaurantId"='00000000-0000-4000-8000-000000000001' AND "name"='Kazandibi';
+UPDATE "Product" SET "categoryEn" = 'Soup' WHERE "restaurantId"='00000000-0000-4000-8000-000000000001' AND "category"='Çorba';
+UPDATE "Product" SET "categoryEn" = 'Main course' WHERE "restaurantId"='00000000-0000-4000-8000-000000000001' AND "category"='Ana Yemek';
+UPDATE "Product" SET "categoryEn" = 'Side dish' WHERE "restaurantId"='00000000-0000-4000-8000-000000000001' AND "category"='Yardımcı';
+UPDATE "Product" SET "categoryEn" = 'Salad' WHERE "restaurantId"='00000000-0000-4000-8000-000000000001' AND "category"='Salata';
+UPDATE "Product" SET "categoryEn" = 'Drink' WHERE "restaurantId"='00000000-0000-4000-8000-000000000001' AND "category"='İçecek';
+UPDATE "Product" SET "categoryEn" = 'Dessert' WHERE "restaurantId"='00000000-0000-4000-8000-000000000001' AND "category"='Tatlı';
+UPDATE "OrderItem" SET "productNameEn"=(SELECT "nameEn" FROM "Product" WHERE "Product"."id"="OrderItem"."productId" AND "Product"."name"="OrderItem"."productName") WHERE "productNameEn" IS NULL;
+COMMIT;
+
